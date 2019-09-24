@@ -1,14 +1,18 @@
 #!/bin/bash
 
 STAGE_DIR="/dbfs/databricks/appinsights"
-APPINSIGHTS_INSTRUMENTATIONKEY="FILL ME IN"
-LOG_ANALYTICS_WORKSPACE_ID="FILL ME IN"
-LOG_ANALYTICS_PRIMARY_KEY="FILL ME IN"
+APPINSIGHTS_INSTRUMENTATIONKEY="<FILL IN YOUR KEY>"
+LOG_ANALYTICS_WORKSPACE_ID="<FILL IN YOUR KEY>"
+LOG_ANALYTICS_PRIMARY_KEY="<FILL IN YOUR KEY>"
 
 echo "BEGIN: Upload App Insights JARs"
 cp -f "$STAGE_DIR/applicationinsights-core-2.3.0.jar" /mnt/driver-daemon/jars || { echo "Error copying file"; exit 1;}
 cp -f "$STAGE_DIR/applicationinsights-logging-log4j1_2-2.3.0.jar" /mnt/driver-daemon/jars || { echo "Error copying file"; exit 1;}
 echo "END: Upload App Insights JARs"
+
+echo "BEGIN: Upload Spark Listener JARs"
+cp -f "$STAGE_DIR/adbxmonitor_2.11-0.1.jar" /mnt/driver-daemon/jars || { echo "Error copying file"; exit 1;}
+echo "END: Upload Spark Listener JARs"
 
 echo "BEGIN: Setting Environment variables"
 sudo echo APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY >> /etc/environment
@@ -36,3 +40,11 @@ wget https://raw.githubusercontent.com/Microsoft/OMS-Agent-for-Linux/master/inst
 sudo su omsagent -c 'python /opt/microsoft/omsconfig/Scripts/PerformRequiredConfigurationChecks.py'
 /opt/microsoft/omsagent/bin/service_control restart $LOG_ANALYTICS_WORKSPACE_ID
 echo "END: Updating Azure Log Analytics properties file"
+
+echo "BEGIN: Modify Spark config settings"
+cat << 'EOF' > /databricks/driver/conf/adbxmonitor-spark-driver-defaults.conf
+[driver] {
+  "spark.extraListeners" = "com.microsoft.adbxmonitor.adbxlistener.AdbxListener"
+}
+EOF
+echo "END: Modify Spark config settings"

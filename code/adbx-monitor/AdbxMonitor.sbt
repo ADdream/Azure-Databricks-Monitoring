@@ -1,8 +1,8 @@
-name := "DataPlatMonitor" 
- 
-version := "0.1" 
- 
-scalaVersion := "2.11.12" 
+name := "AdbxMonitor"
+
+version := "0.1"
+
+scalaVersion := "2.11.12"
 
 // scalacOptions += "-Ylog-classpath"
 
