@@ -90,9 +90,6 @@ traces
 Install the custom Scala listener on your cluster to automatically send Spark job events to Application Insights.
 
 
-## Features to make more Robust
-- The sed command in the appinsights_logging_init.sh could be smarter.  I just needs to append versus a full replace.
-
 ## Things you can do
 1. For query help see: https://docs.microsoft.com/en-us/azure/kusto/query/
 2. Show this data in Power BI: https://docs.microsoft.com/en-us/azure/azure-monitor/app/export-power-bi
