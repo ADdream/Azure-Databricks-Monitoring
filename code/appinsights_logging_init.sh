@@ -6,8 +6,8 @@ LOG_ANALYTICS_WORKSPACE_ID="<FILL IN YOUR KEY>"
 LOG_ANALYTICS_PRIMARY_KEY="<FILL IN YOUR KEY>"
 
 echo "BEGIN: Upload App Insights JARs"
-cp -f "$STAGE_DIR/applicationinsights-core-2.3.0.jar" /mnt/driver-daemon/jars || { echo "Error copying file"; exit 1;}
-cp -f "$STAGE_DIR/applicationinsights-logging-log4j1_2-2.3.0.jar" /mnt/driver-daemon/jars || { echo "Error copying file"; exit 1;}
+cp -f "$STAGE_DIR/applicationinsights-core-2.6.1.jar" /mnt/driver-daemon/jars || { echo "Error copying file"; exit 1;}
+cp -f "$STAGE_DIR/applicationinsights-logging-log4j1_2-2.6.1.jar" /mnt/driver-daemon/jars || { echo "Error copying file"; exit 1;}
 echo "END: Upload App Insights JARs"
 
 echo "BEGIN: Upload Spark Listener JARs"
