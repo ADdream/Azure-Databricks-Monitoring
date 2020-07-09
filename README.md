@@ -1,48 +1,73 @@
-# Azure-Databricks-Log4J-To-AppInsights
-Connect your Spark Databricks clusters Log4J output to the Application Insights Appender.  This will help you get your logs to a centralized location such as App Insights.  Many of my customers have been asking for this along with getting the Spark job data from the cluster (that will be a future project).
+# Azure Databricks Monitoring
 
-I also added Log Analytics so that the server metrics will be captured and placed in Azure Monitor.
+Azure Databricks has some [native integration with Azure Monitor](https://docs.microsoft.com/en-us/azure/databricks/administration-guide/account-settings/azure-diagnostic-logs)
+that allows customers to track workspace-level events in Azure Monitor.  However, many customers
+want a deeper view of the activity within Databricks.  This repo presents a solution that
+will send much more detailed information about the Spark jobs running on Databricks clusters
+over to Azure Monitor.  This allows organizations to use the same reporting and alerting features
+in Azure Monitor that they use for other services to be applied to activities within Databricks.
 
-## Configuration Steps: Application Insights
+This solution includes two distinct components:
+1. Copy Spark logs managed by Log4J to Log Analytics, which will help you get your
+logs to a centralized location.
+
+2. Send both standard and custom metrics about Spark jobs to Application Insights.  This is
+accomplished by attaching a custom Spark Listener to your Databricks clusters.
+
+These two components can be implemented independently of each other, based on your needs.  It
+should be noted that Log4J is quite verbose, and for large Databricks deployments, it can be
+expensive to import so much logging data into Log Analytics.
+
+## Setup
+Follow the steps below to configure the solution in your environment.
+
+### Configuration Steps: Application Insights
 1. Create Application Insights in Azure 
-2. Get your instrumentation key on the overview page
-2. Replace APPINSIGHTS_INSTRUMENTATIONKEY in the appinsights_logging_init.sh script
+1. Get your instrumentation key on the overview page
+1. Enter `APPINSIGHTS_INSTRUMENTATIONKEY` in the `appinsights_logging_init.sh` script
 
-## Configuration Steps: Log Analytics
+### Configuration Steps: Log Analytics
 1. Create a Log Analytics account in Azure
-2. Get your workspace id on the overview page
-3. Get your primary key by clicking Advanced Settings | Connected Sources | Linux and copy primary key
-4. Replace LOG_ANALYTICS_WORKSPACE_ID in the appinsights_logging_init.sh script
-5. Replace LOG_ANALYTICS_PRIMARY_KEY in the appinsights_logging_init.sh script
-6. Get your primary key by clicking Advanced Settings | Data | Linux Performace Counters and click "Apply below configuration to my machines" then press Save
-7. Click the Add button (The UI should turn to a grid) then press Save
+1. Get your workspace id on the overview page
+1. Get your primary key by clicking Advanced Settings >> Connected Sources >> Linux and copy primary key
+1. Enter `LOG_ANALYTICS_WORKSPACE_ID` in the `appinsights_logging_init.sh` script
+1. Enter `LOG_ANALYTICS_PRIMARY_KEY` in the `appinsights_logging_init.sh` script
+1. Get your primary key by clicking Advanced Settings >> Data >> Linux Performace Counters and click "Apply below configuration to my machines" then press Save
+1. Click the Add button (The UI should turn to a grid) then press Save
 
 ### Configuration Steps: Databricks
 1. Create Databricks workspace in Azure
-2. Install Databricks CLI
-3. Open your Azure Databricks workspace, click on the user icon and create a token
-4. Run "databricks configure --token" to configure the Databricks CLI
-5. Run Upload-Items-To-Databricks.sh (change the .bat for Windows).  Linux you need to do a chmod +x on this file to run.
-6. Create a cluster in Databricks (any size and shape is fine)
+1. Install Databricks CLI on your local machine
+1. Open your Azure Databricks workspace, click on the user icon, and create a token
+1. Run `databricks configure --token` on your local machine to configure the Databricks CLI
+1. Run `Upload-Items-To-Databricks.sh`
+   - Change the extension to `.bat` for Windows).
+   - On Linux you will need to do a `chmod +x` on this file to run.
+
+   This will copy the `.jar` files and init script from this repo to the DBFS in your Databricks
+   workspace.
+
+1. Create a cluster in Databricks (any size and shape is fine)
     - Make sure you click Advanced Options and "Init Scripts"
     - Add a script for "dbfs:/databricks/appinsights/appinsights_logging_init.sh"
-    ![alt tag](https://raw.githubusercontent.com/AdamPaternostro/Azure-Databricks-Log4J-To-AppInsights/master/images/databrickscluster.png)
-7. Start the cluster    
-8. <OPTIONAL> Install the `applicationsights` Python package [from PyPi](https://pypi.org/project/applicationinsights/) to the cluster.
+    ![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/databrickscluster.png)
+1. Start the cluster    
+1. *OPTIONAL* Install the `applicationsights` Python package
+   [from PyPi](https://pypi.org/project/applicationinsights/) to the cluster.
     - This provides the ability to send custom events and metrics to app insights.
     - You'll need to follow this step if you plan on logging Custom Metrics or Events to App Insights on Pyspark.
     - Steps to [install a library](https://docs.azuredatabricks.net/user-guide/libraries.html#install-libraries) on Azure Databricks
 
 ## Verification Steps
-1. Import the notebooks in AppInsightsTest
+1. Import the notebooks in the `AppInsightsTest.dbc` file
 1. Run the AppInsightsTest Scala notebook
     1. Cell 1 displays your application insights key
-    2. Cell 2 displays your jars (application insights jars should be in here)
-    3. Cell 3 displays your log4j.properities file on the "driver" (which has the aiAppender)
-    4. Cell 4 displays your log4j.properities file on the "executor" (which has the aiAppender)
-    5. Cell 5 writes to Log4J so the message will appear in App Insights
-    6. Cell 6 writes to App Insights via the App Insights API.  This will show as a "Custom Event" (customEvents table).
-1. <OPTIONAL> Run the AppInsightsPython Python notebook
+    1. Cell 2 displays your jars (application insights jars should be in here)
+    1. Cell 3 displays your log4j.properities file on the "driver" (which has the aiAppender)
+    1. Cell 4 displays your log4j.properities file on the "executor" (which has the aiAppender)
+    1. Cell 5 writes to Log4J so the message will appear in App Insights
+    1. Cell 6 writes to App Insights via the App Insights API.  This will show as a "Custom Event" (customEvents table).
+1. *OPTIONAL* Run the AppInsightsPython Python notebook
     1. Cell 1 creates a reference to the Log4J logger (called aiAppender) and writes to Log4J so the message will appear in App Insights.
     1. Cell 2 configures the connection to App Insights via the `appinsights` package.
     1. Cell 3 writes to App Insights via the App Insights API. This will show as a "Custom Event" (customEvents table).
@@ -52,15 +77,15 @@ I also added Log Analytics so that the server metrics will be captured and place
     - For a new App Insights account this can take 10 to 15 minutes to really initialize
     - For an account that is initialized expect a 1 to 3 minute delay for telemetry
 
-## Now that you have data
+## Now That You Have Data...
 1. The data will come into App Insights as a Trace
-![alt tag](https://raw.githubusercontent.com/AdamPaternostro/Azure-Databricks-Log4J-To-AppInsights/master/images/dimensiondata.png)
+![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/dimensiondata.png)
 
-2. This means the data will be in the customDimensions field as a property bag
-3. Open the Analytic query for App Insights
-4. Run ``` traces | order by timestamp desc ```
+1. This means the data will be in the customDimensions field as a property bag
+1. Open the Analytic query for App Insights
+1. Run ``` traces | order by timestamp desc ```
    - You will notice how customDimensions contains the fields 
-5. Parse the custom dimensions.  This will make the display easier.
+1. Parse the custom dimensions.  This will make the display easier.
 ```
 traces 
 | project 
@@ -75,25 +100,25 @@ traces
 | order by timestamp desc
 ```
 
-![alt tag](https://raw.githubusercontent.com/AdamPaternostro/Azure-Databricks-Log4J-To-AppInsights/master/images/formatteddata.png)
+![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/formatteddata.png)
 
-6. Run ``` customEvents | order by timestamp  desc ``` to see the custom event your Notebook wrote
-7. Run ``` customMetrics | order by timestamp  desc ``` to see the HeartbeatState
-8. Don't know which field has your data: ``` traces | where * contains "App Insights on Databricks"    ```
-9. Open your Log Analytics account
+1. Run ``` customEvents | order by timestamp  desc ``` to see the custom event your Notebook wrote
+1. Run ``` customMetrics | order by timestamp  desc ``` to see the HeartbeatState
+1. Don't know which field has your data: ``` traces | where * contains "App Insights on Databricks"    ```
+1. Open your Log Analytics account
    1. Click on Logs
-   2. Write a query against the Perf and/or Heartbeat tables
-   ![alt tag](https://raw.githubusercontent.com/AdamPaternostro/Azure-Databricks-Log4J-To-AppInsights/master/images/perfdata.png)
+   1. Write a query against the Perf and/or Heartbeat tables
+   ![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/perfdata.png)
 
-## Logging each Spark Job to Application Insights automatically
+## Logging each Spark Job to Application Insights Automatically
 
-Install the custom Scala listener on your cluster to automatically send Spark job events to Application Insights.
+Install the custom Scala Listener on your cluster to automatically send Spark job events to Application Insights.
 
 
-## Things you can do
+## Things You Can Do...
 1. For query help see: https://docs.microsoft.com/en-us/azure/kusto/query/
-2. Show this data in Power BI: https://docs.microsoft.com/en-us/azure/azure-monitor/app/export-power-bi
-3. You can pin your queries to an Azure Dashboard: https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-dashboards
-4. You can configure continuous export your App Insights data and send to other systems. Create a Stream Analytics job to monitor the exported blob location and send from there.
-5. Set up alerts: https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-log-query
-6. You can get JMX metrics: https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-get-started#performance-counters.  You will need an ApplicationInsights.XML file: https://github.com/Microsoft/ApplicationInsights-Java/wiki/ApplicationInsights.XML.  You probably need to upload this to DBFS and then copy in the appinsights_logging_init.sh to the cluster.  I have not yet tested this setup.
+1. Show this data in Power BI: https://docs.microsoft.com/en-us/azure/azure-monitor/app/export-power-bi
+1. You can pin your queries to an Azure Dashboard: https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-dashboards
+1. You can configure continuous export your App Insights data and send to other systems. Create a Stream Analytics job to monitor the exported blob location and send from there.
+1. Set up alerts: https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-log-query
+1. You can get JMX metrics: https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-get-started#performance-counters.  You will need an ApplicationInsights.XML file: https://github.com/Microsoft/ApplicationInsights-Java/wiki/ApplicationInsights.XML.  You probably need to upload this to DBFS and then copy in the appinsights_logging_init.sh to the cluster. (I have not yet tested this setup.)
