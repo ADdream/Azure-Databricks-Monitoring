@@ -6,11 +6,12 @@ link to some libraries used by Databricks.  To do this, just copy the following
 directory:
 
 - `----jackson_databind_shaded--libjackson-databind.jar`
+- `----scalapb_090--io.opencensus__opencensus-api__0.21.0_shaded.jar`
 - `chauffeur-api--chauffeur-api-spark_3.0_2.12_deploy.jar`
 - `common--common-spark_3.0_2.12_deploy.jar`
 - `extern--extern-spark_3.0_2.12_deploy.jar`
 - `jsonutil--jsonutil-spark_3.0_2.12_deploy.jar`
-
+- `spark--dbutils--dbutils-api-spark_3.0_2.12_deploy.jar`
 ---
 
 Here's the easiest way to accomplish this.  First, create a new Databricks
@@ -21,10 +22,12 @@ from the driver node to the DBFS.
 mkdir -p /dbfs/jar-transfer
 rm -r /dbfs/jar-transfer/*
 cp /databricks/jars/----jackson_databind_shaded--libjackson-databind.jar /dbfs/jar-transfer
+cp /databricks/jars/----scalapb_090--io.opencensus__opencensus-api__*_shaded.jar /dbfs/jar-transfer
 cp /databricks/jars/chauffeur-api--chauffeur-api-spark_*_deploy.jar /dbfs/jar-transfer
 cp /databricks/jars/common--common-spark_*_deploy.jar /dbfs/jar-transfer
 cp /databricks/jars/extern--extern-spark_*_deploy.jar /dbfs/jar-transfer
 cp /databricks/jars/jsonutil--jsonutil-spark_*_deploy.jar /dbfs/jar-transfer
+cp /databricks/jars/spark--dbutils--dbutils-api-spark_*_deploy.jar /dbfs/jar-transfer
 
 ls -l /dbfs/jar-transfer
 ```
