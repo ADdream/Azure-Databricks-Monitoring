@@ -50,7 +50,7 @@ Follow the steps below to configure the solution in your environment.
 1. Create a cluster in Databricks (any size and shape is fine)
     - Make sure you click Advanced Options and "Init Scripts"
     - Add a script for "dbfs:/databricks/appinsights/appinsights_logging_init.sh"
-    ![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/databrickscluster.png)
+    ![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/main/images/databrickscluster.png)
 1. Start the cluster    
 1. *OPTIONAL* Install the `applicationsights` Python package
    [from PyPi](https://pypi.org/project/applicationinsights/) to the cluster.
@@ -79,7 +79,7 @@ Follow the steps below to configure the solution in your environment.
 
 ## Now That You Have Data...
 1. The data will come into App Insights as a Trace
-![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/dimensiondata.png)
+![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/main/images/dimensiondata.png)
 
 1. This means the data will be in the customDimensions field as a property bag
 1. Open the Analytic query for App Insights
@@ -100,7 +100,7 @@ traces
 | order by timestamp desc
 ```
 
-![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/formatteddata.png)
+![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/main/images/formatteddata.png)
 
 1. Run ``` customEvents | order by timestamp  desc ``` to see the custom event your Notebook wrote
 1. Run ``` customMetrics | order by timestamp  desc ``` to see the HeartbeatState
@@ -108,7 +108,7 @@ traces
 1. Open your Log Analytics account
    1. Click on Logs
    1. Write a query against the Perf and/or Heartbeat tables
-   ![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/master/images/perfdata.png)
+   ![alt tag](https://raw.githubusercontent.com/AnalyticJeremy/Azure-Databricks-Monitoring/main/images/perfdata.png)
 
 ## Logging each Spark Job to Application Insights Automatically
 
